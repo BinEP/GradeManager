@@ -16,8 +16,8 @@ public class GradeManager {
 		classes.insertInfo(newClass);
 	}
 	
-	public void addAssignment(String assignmentName, int score, int possiblePoints, String theClass) {
-		scores.insertInfo(assignmentName, "" + score, "" + possiblePoints, theClass);
+	public void addAssignment(String assignmentName, String score, String possiblePoints, String theClass) {
+		scores.insertInfo(assignmentName, score, possiblePoints, theClass);
 	}
 	
 	public String[][] getClassAssignments(String yourClass) {

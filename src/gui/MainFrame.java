@@ -10,8 +10,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.GridLayout;
 
 import javax.swing.JTabbedPane;
-import javax.swing.JToolBar;
-import javax.swing.JSplitPane;
 
 import java.awt.Choice;
 import java.awt.event.KeyAdapter;
@@ -29,18 +27,22 @@ import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 
 import database.GradeManager;
+
 import javax.swing.JSeparator;
 import javax.swing.JButton;
+
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class MainFrame extends JFrame {
 
 	private JPanel contentPane;
 	private JTextField txtAssignment;
-	private JTextField textField;
 	private JTextField textField_1;
 	
 	private GradeManager grades = new GradeManager();
 	private JTextField textField_2;
+	private JTextField textField;
 
 	/**
 	 * Launch the application.
@@ -76,12 +78,6 @@ public class MainFrame extends JFrame {
 		contentPane.add(panel, BorderLayout.WEST);
 		
 		Choice choice = new Choice();
-		choice.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				
-			}
-		});
 		panel.setLayout(new GridLayout(20, 1, 0, 0));
 		
 		JLabel lblAddAssignment = new JLabel("Add Assignment");
@@ -124,12 +120,18 @@ public class MainFrame extends JFrame {
 		Component rigidArea_3 = Box.createRigidArea(new Dimension(20, 20));
 		panel.add(rigidArea_3);
 		
-		JComboBox comboBox = new JComboBox();
-		comboBox.setModel(new DefaultComboBoxModel(grades.getClasses()));
+		JComboBox<String> comboBox = new JComboBox<String>();
+		comboBox.setModel(new DefaultComboBoxModel<String>(grades.getClasses()));
 		comboBox.setSelectedIndex(0);
 		panel.add(comboBox);
 		
 		JButton btnAddAssignment = new JButton("Add Assignment");
+		btnAddAssignment.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				grades.addAssignment(txtAssignment.getText(), textField.getText(), textField_1.getText(), (String) comboBox.getSelectedItem()); 
+			}
+		});
 		panel.add(btnAddAssignment);
 		panel.add(choice);
 		
@@ -150,6 +152,12 @@ public class MainFrame extends JFrame {
 		textField_2.setColumns(10);
 		
 		JButton btnAddClass = new JButton("Add Class");
+		btnAddClass.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				grades.addClass(textField_2.getText());
+			}
+		});
 		panel.add(btnAddClass);
 	}
 
