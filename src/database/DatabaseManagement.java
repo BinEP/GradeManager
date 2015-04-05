@@ -11,11 +11,6 @@ public class DatabaseManagement {
 	public static final String SCORES_DB = "scores.db";
 
 	private Connection database;
-	private Statement newTableCommand;
-	private Statement insertDataCommand;
-	private Statement selectData;
-	private Statement sortData;
-	private ResultSet resultData;
 	private String tableName;
 	private String db;
 	private int uniqueID = 1;
@@ -84,7 +79,7 @@ public class DatabaseManagement {
 		connect();
 		String sql = "SELECT * FROM sqlite_master WHERE type='table' AND name='"
 				+ tableName + "';";
-		newTableCommand = database.createStatement();
+		Statement newTableCommand = database.createStatement();
 
 			sql = "CREATE TABLE " + tableName + " "
 					+ "(ID INT PRIMARY KEY      NOT NULL";
@@ -111,7 +106,7 @@ public class DatabaseManagement {
 		uniqueID = selectData().size() + 1;
 		connect();
 
-		insertDataCommand = database.createStatement();
+		Statement insertDataCommand = database.createStatement();
 		String sql = "INSERT INTO " + tableName + " (ID";
 
 		for (String[] s : fields)
@@ -152,8 +147,8 @@ public class DatabaseManagement {
 
 		connect();
 		ArrayList<String[]> results = new ArrayList<String[]>();
-		selectData = database.createStatement();
-		resultData = selectData.executeQuery("SELECT * FROM " + tableName + ";");
+		Statement selectData = database.createStatement();
+		ResultSet resultData = selectData.executeQuery("SELECT * FROM " + tableName + ";");
 
 		while (resultData.next()) {
 			String[] scores = new String[fields.length];
@@ -180,7 +175,7 @@ public class DatabaseManagement {
 	private void sortDataCommand() throws SQLException {
 
 		connect();
-		sortData = database.createStatement();
+		Statement sortData = database.createStatement();
 		sortData.executeQuery("SELECT * FROM " + tableName
 				+ " ORDER BY SCORE, " + fields[0] + " ASC");
 
@@ -247,6 +242,44 @@ public class DatabaseManagement {
 	
 	public void setShowDate(boolean addDate) {
 		this.addDate = addDate;
+	}
+	
+	public ArrayList<String[]> sortBy(boolean up, String... col) {
+		try {
+			return sortByCommand(up, col);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private ArrayList<String[]> sortByCommand(boolean up, String[] col) throws SQLException {
+
+		connect();
+		Statement customSort = database.createStatement();
+		String sql = "SELECT * FROM " + tableName + " ORDER BY ";
+		for (String s : col) 
+			sql += s + ", ";
+		sql = sql.substring(0, sql.length() - 3);
+		sql += (up) ? "ASC" : "DESC";
+		
+		ResultSet sortedRows = customSort.executeQuery(sql);
+		
+		ArrayList<String[]> results = new ArrayList<String[]>();
+		while (sortedRows.next()) {
+			String[] scores = new String[fields.length];
+			for (int i = 0; i < scores.length; i++) {
+				scores[i] = sortedRows.getString(fields[i][0]);
+			}
+			results.add(scores);
+		}
+		
+		sortedRows.close();
+		customSort.close();
+		database.commit();
+		
+		closeConnections();
+		return results;
 	}
 
 	public void closeConnections() {

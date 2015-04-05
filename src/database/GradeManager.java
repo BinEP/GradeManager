@@ -23,4 +23,20 @@ public class GradeManager {
 	public String[][] getClassAssignments(String yourClass) {
 		return (String[][]) scores.getMatchingRows("CLASS", yourClass).toArray();
 	}
+	
+	public void removeAssignment(String assignmentName) {
+		
+	}
+	
+	public String[] getClasses() {
+		return classes.getColumnNames();
+	}
+	
+	public String[][] getAllAssignments() {
+		return (String[][]) scores.selectData().toArray();
+	}
+	
+	public String[][] getAssignmentsSorted(boolean up, String... colsSortBy) {
+		return (String[][]) scores.sortBy(up, colsSortBy).toArray();
+	}
 }
