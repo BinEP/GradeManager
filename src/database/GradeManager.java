@@ -29,7 +29,7 @@ public class GradeManager {
 	}
 	
 	public String[] getClasses() {
-		return classes.getColumnNames();
+		return (String[]) classes.selectData().toArray();
 	}
 	
 	public String[][] getAllAssignments() {
