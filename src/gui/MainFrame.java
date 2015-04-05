@@ -12,8 +12,6 @@ import java.awt.GridLayout;
 import javax.swing.JTabbedPane;
 
 import java.awt.Choice;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.Component;
 
 import javax.swing.Box;
@@ -28,14 +26,16 @@ import javax.swing.DefaultComboBoxModel;
 
 import database.GradeManager;
 
-import javax.swing.JSeparator;
 import javax.swing.JButton;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.JTable;
+import javax.swing.JSeparator;
 
 public class MainFrame extends JFrame {
 
+	private static final long serialVersionUID = -3136693642689296249L;
 	private JPanel contentPane;
 	private JTextField txtAssignment;
 	private JTextField textField_1;
@@ -43,6 +43,21 @@ public class MainFrame extends JFrame {
 	private GradeManager grades = new GradeManager();
 	private JTextField textField_2;
 	private JTextField textField;
+	private JTable table;
+
+	private void addAssignment(JComboBox<String> comboBox) {
+		grades.addAssignment(txtAssignment.getText(), textField.getText(), textField_1.getText(), (String) comboBox.getSelectedItem());
+	}
+
+	private void addClass() {
+		grades.addClass(textField_2.getText());
+	}
+	
+	private void assigmentsInJtable(JTable table) {
+		table.
+		
+		
+	}
 
 	/**
 	 * Launch the application.
@@ -74,10 +89,15 @@ public class MainFrame extends JFrame {
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
 		
+		table = new JTable();
+		tabbedPane.addTab("All", null, table, null);
+		for (String s : grades.getClasses()) {
+			table = new JTable();
+			tabbedPane.addTab(s, null, table, null);
+		}
+		
 		JPanel panel = new JPanel();
 		contentPane.add(panel, BorderLayout.WEST);
-		
-		Choice choice = new Choice();
 		panel.setLayout(new GridLayout(20, 1, 0, 0));
 		
 		JLabel lblAddAssignment = new JLabel("Add Assignment");
@@ -129,14 +149,13 @@ public class MainFrame extends JFrame {
 		btnAddAssignment.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				grades.addAssignment(txtAssignment.getText(), textField.getText(), textField_1.getText(), (String) comboBox.getSelectedItem()); 
+				addAssignment(comboBox); 
 			}
 		});
 		panel.add(btnAddAssignment);
-		panel.add(choice);
 		
-		JLabel label = new JLabel("___________________________");
-		panel.add(label);
+		JSeparator separator = new JSeparator();
+		panel.add(separator);
 		
 		JLabel lblAddClass = new JLabel("Add Class");
 		panel.add(lblAddClass);
@@ -155,7 +174,7 @@ public class MainFrame extends JFrame {
 		btnAddClass.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				grades.addClass(textField_2.getText());
+				addClass();
 			}
 		});
 		panel.add(btnAddClass);

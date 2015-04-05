@@ -1,5 +1,7 @@
 package database;
 
+import java.util.ArrayList;
+
 public class GradeManager {
 
 	DatabaseManagement classes;
@@ -21,7 +23,7 @@ public class GradeManager {
 	}
 	
 	public String[][] getClassAssignments(String yourClass) {
-		return (String[][]) scores.getMatchingRows("CLASS", yourClass).toArray();
+		return toListNormalArray(scores.getMatchingRows("CLASS", yourClass));
 	}
 	
 	public void removeAssignment(String assignmentName) {
@@ -29,14 +31,42 @@ public class GradeManager {
 	}
 	
 	public String[] getClasses() {
-		return (String[]) classes.selectData().toArray();
+		return getIndexOfArrays(toListNormalArray(classes.selectData()), 0);
 	}
 	
 	public String[][] getAllAssignments() {
-		return (String[][]) scores.selectData().toArray();
+		return toListNormalArray(scores.selectData());
 	}
 	
 	public String[][] getAssignmentsSorted(boolean up, String... colsSortBy) {
-		return (String[][]) scores.sortBy(up, colsSortBy).toArray();
+		return toListNormalArray(scores.sortBy(up, colsSortBy));
+	}
+	
+	private String[] toNormalArray(ArrayList<String> arr) {
+		String[] newArr = new String[arr.size()];
+		int index = 0;
+		for (String s : arr) {
+			newArr[index] = s;
+			index++;
+		}
+		return newArr;
+	}
+	
+	private String[][] toListNormalArray(ArrayList<String[]> arr) {
+		String[][] newArr = new String[arr.size()][arr.get(0).length];
+		int index = 0;
+		for (String[] s : arr) {
+			newArr[index] = s;
+			index++;
+		}
+		return newArr;
+	}
+	
+	private String[] getIndexOfArrays(String[][] arr, int index) {
+		String[] newArr = new String[arr.length];
+		for (int i = 0; i < arr.length; i++) {
+			newArr[i] = arr[i][index];
+		}
+		return newArr;
 	}
 }
