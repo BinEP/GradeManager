@@ -33,8 +33,10 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.JTable;
 import javax.swing.JSeparator;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.util.ArrayList;
 
 public class MainFrame extends JFrame {
 
@@ -106,24 +108,23 @@ public class MainFrame extends JFrame {
 
 		String[] colHeaders = { "Total Points", "Scored Points", "Out Of",
 				"Percent", "" };
-		
-		JPanel scoreWrapper = new JPanel();
-		
-		JScrollPane scorePane = makeClassScoreTable("All");
-		JScrollPane sumPane = makeSumTable(colHeaders, "All");
-		
-		scoreWrapper.add(scorePane);
-		scoreWrapper.add(sumPane);
 
-		tabbedPane.addTab("All", null, scoreWrapper, null);
+		addAllTabs(tabbedPane, colHeaders);
+	}
 
-		for (String s : grades.getClasses()) {
-			
+	private void addAllTabs(JTabbedPane tabbedPane, String[] colHeaders) {
+		JPanel scoreWrapper;
+		JScrollPane scorePane;
+		JScrollPane sumPane;
+		ArrayList<String> classList = grades.getClassesList();
+		classList.add(0, "All");
+		for (String s : classList) {
+
 			scoreWrapper = new JPanel();
-			
+
 			scorePane = makeClassScoreTable(s);
 			sumPane = makeSumTable(colHeaders, s);
-			
+
 			scoreWrapper.add(scorePane);
 			scoreWrapper.add(sumPane);
 
@@ -139,9 +140,12 @@ public class MainFrame extends JFrame {
 	}
 
 	private JScrollPane makeSumTable(String[] colData, String s) {
-		if (s.equals("All")) s = "%";
-		int scoreTotal = grades.getColumnTotal("POINTS", "CLASS LIKE '" + s + "'", true);
-		int possTotal = grades.getColumnTotal("OUTOF", "CLASS LIKE '" + s + "'", true);
+		if (s.equals("All"))
+			s = "%";
+		int scoreTotal = grades.getColumnTotal("POINTS", "CLASS LIKE '" + s
+				+ "'", true);
+		int possTotal = grades.getColumnTotal("OUTOF",
+				"CLASS LIKE '" + s + "'", true);
 		double percent = getPercent(scoreTotal, possTotal);
 		String[][] rowData = { { "Total", "" + scoreTotal, "" + possTotal,
 				"" + percent + "%", "" } };

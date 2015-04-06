@@ -35,6 +35,14 @@ public class GradeManager {
 		return getIndexOfArrays(toListNormalArray(classes.selectData()), 0);
 	}
 	
+	public ArrayList<String> getClassesList() {
+		ArrayList <String> classList = new ArrayList<String>();
+		for (String c : getIndexOfArrays(toListNormalArray(classes.selectData()), 0)) {
+			classList.add(c);
+		}
+		return classList;
+	}
+	
 	public String[] getAssignmentHeaders() {
 		return scores.getColumnNames();
 	}
