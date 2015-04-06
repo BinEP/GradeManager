@@ -109,8 +109,7 @@ public class MainFrame extends JFrame {
 		
 		JPanel scoreWrapper = new JPanel();
 		
-		JScrollPane scorePane = makeAllScoresTable();
-//		JScrollPane sumPane = makeAllSumTable(colHeaders);
+		JScrollPane scorePane = makeClassScoreTable("All");
 		JScrollPane sumPane = makeSumTable(colHeaders, "All");
 		
 		scoreWrapper.add(scorePane);
@@ -123,7 +122,6 @@ public class MainFrame extends JFrame {
 			scoreWrapper = new JPanel();
 			
 			scorePane = makeClassScoreTable(s);
-//			sumPane = makeClassSumTable(colHeaders, s);
 			sumPane = makeSumTable(colHeaders, s);
 			
 			scoreWrapper.add(scorePane);
@@ -140,35 +138,6 @@ public class MainFrame extends JFrame {
 		return scorePane;
 	}
 
-	private JScrollPane makeAllScoresTable() {
-		scoreTable = new JTable(grades.getAllAssignments(),
-				grades.getAssignmentHeaders());
-		JScrollPane scorePane = new JScrollPane(scoreTable);
-		return scorePane;
-	}
-	
-	private JScrollPane makeClassSumTable(String[] colHeaders, String s) {
-		int scoreTotal = grades.getColumnTotal("POINTS", s);
-		int possTotal = grades.getColumnTotal("OUTOF", s);
-		double percent = getPercent(scoreTotal, possTotal);
-		String[][] classRowData = {{ "Total", "" + scoreTotal,
-				"" + possTotal, "" + percent + "%", "" }};
-		JTable sumTable = new JTable(classRowData, colHeaders);
-		JScrollPane sumPane = new JScrollPane(sumTable);
-		return sumPane;
-	}
-
-	private JScrollPane makeAllSumTable(String[] colData) {
-		int scoreTotal = grades.getScoreTotal();
-		int possTotal = grades.getPossTotal();
-		double percent = getPercent(scoreTotal, possTotal);
-		String[][] rowData = { { "Total", "" + scoreTotal, "" + possTotal,
-				"" + percent + "%", "" } };
-		JTable sumTable = new JTable(rowData, colData);
-		JScrollPane sumPane = new JScrollPane(sumTable);
-		return sumPane;
-	}
-	
 	private JScrollPane makeSumTable(String[] colData, String s) {
 		if (s.equals("All")) s = "%";
 		int scoreTotal = grades.getColumnTotal("POINTS", "CLASS LIKE '" + s + "'", true);
