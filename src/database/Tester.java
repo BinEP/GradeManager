@@ -38,6 +38,7 @@ public class Tester {
 		ArrayList<String[]> getClass = scores.getMatchingRows("CLASS", "Science");
 		printClassResult(getClass, scores);
 		
+		
 	}
 	
 	public static void printDatabaseContents(DatabaseManagement classes, DatabaseManagement scores) {

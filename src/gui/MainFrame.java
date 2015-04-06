@@ -11,7 +11,6 @@ import java.awt.GridLayout;
 
 import javax.swing.JTabbedPane;
 
-import java.awt.Choice;
 import java.awt.Component;
 
 import javax.swing.Box;
@@ -19,6 +18,7 @@ import javax.swing.Box;
 import java.awt.Dimension;
 
 import javax.swing.JLabel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.JComboBox;
@@ -30,8 +30,11 @@ import javax.swing.JButton;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
 import javax.swing.JTable;
 import javax.swing.JSeparator;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 public class MainFrame extends JFrame {
 
@@ -44,6 +47,7 @@ public class MainFrame extends JFrame {
 	private JTextField textField_2;
 	private JTextField textField;
 	private JTable table;
+	private JScrollPane scrollPane_1;
 
 	private void addAssignment(JComboBox<String> comboBox) {
 		grades.addAssignment(txtAssignment.getText(), textField.getText(),
@@ -83,14 +87,32 @@ public class MainFrame extends JFrame {
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
-
-		table = new JTable(grades.getAllAssignments(), grades.getAssignmentHeaders());
-		tabbedPane.addTab("All", null, table, null);
-		for (String s : grades.getClasses()) {
-			table = new JTable(grades.getClassAssignments(s), grades.getAssignmentHeaders());
-			tabbedPane.addTab(s, null, table, null);
-		}
-
+		
+		JScrollPane scrollPane = new JScrollPane();
+		JPanel panel_1 = new JPanel();
+		
+		table = new JTable();
+		table.addPropertyChangeListener(new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent evt) {
+			}
+		});
+//		JTable sumTable = new JTable();
+		
+//		table = new JTable(grades.getAllAssignments(), grades.getAssignmentHeaders());
+		tabbedPane.addTab("All", null, panel_1, null);
+		panel_1.setLayout(new BorderLayout(0, 0));
+		scrollPane = new JScrollPane(table);
+		panel_1.add(scrollPane);
+		
+//		for (String s : grades.getClasses()) {
+//			
+//			table = new JTable(grades.getClassAssignments(s), grades.getAssignmentHeaders());
+//			scrollPane = new JScrollPane(table);
+//			panel_1 = new JPanel();
+//			panel_1.add(scrollPane);
+//			tabbedPane.addTab(s, null, panel_1, null);
+//		}
+		
 		JPanel panel = new JPanel();
 		contentPane.add(panel, BorderLayout.WEST);
 		panel.setLayout(new GridLayout(20, 1, 0, 0));
@@ -99,7 +121,7 @@ public class MainFrame extends JFrame {
 		lblAddAssignment.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(lblAddAssignment);
 
-		Component rigidArea = Box.createRigidArea(new Dimension(200, 20));
+		Component rigidArea = Box.createRigidArea(new Dimension(150, 20));
 		panel.add(rigidArea);
 
 		JLabel lblAssignmentName = new JLabel("Assignment Name");

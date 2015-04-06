@@ -240,7 +240,33 @@ public class DatabaseManagement {
 		return columnNames;
 	}
 	
-	public void setShowDate(boolean addDate) {
+	public ArrayList<String> getColumnData(String col) {
+		try {
+			return getColumnDataCommand(col);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public ArrayList<String> getColumnDataCommand(String col) throws SQLException {
+		Statement matchRowsCommand = database.createStatement();
+		
+		String sql = "SELECT " + col + " FROM " + tableName;
+		ResultSet matchingRows = matchRowsCommand.executeQuery(sql);
+		
+		ArrayList<String> results = new ArrayList<String>();
+		while (matchingRows.next()) {
+			results.add(matchingRows.getString(col));
+		}
+		
+		matchingRows.close();
+		matchRowsCommand.close();
+		database.commit();
+		return results;
+	}
+	
+ 	public void setShowDate(boolean addDate) {
 		this.addDate = addDate;
 	}
 	

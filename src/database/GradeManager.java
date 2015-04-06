@@ -43,6 +43,24 @@ public class GradeManager {
 		return toListNormalArray(scores.selectData());
 	}
 	
+	public int getScoreTotal() {
+		String[] allScores = toNormalArray(scores.getColumnData("POINTS"));
+		int sum = 0;
+		for (String s : allScores) {
+			sum += Integer.parseInt(s);
+		}
+		return sum;
+	}
+	
+	public int getPossTotal() {
+		String[] allScores = toNormalArray(scores.getColumnData("OUTOF"));
+		int sum = 0;
+		for (String s : allScores) {
+			sum += Integer.parseInt(s);
+		}
+		return sum;
+	}
+	
 	public int getNumOfAssignments(String theClass) {
 		if (theClass.equals("all")) return getAllAssignments().length;
 		return getClassAssignments(theClass).length;
@@ -78,5 +96,20 @@ public class GradeManager {
 			newArr[i] = arr[i][index];
 		}
 		return newArr;
+	}
+	
+	public static void main(String[] args) {
+		GradeManager gm = new GradeManager();
+		for (String s : gm.getAssignmentHeaders()) {
+			System.out.println(s);
+		}
+		for (String s[] : gm.getAllAssignments()) {
+			for (String t : s) {
+				System.out.print(t + "\t");
+			}
+			System.out.println();
+		}
+		System.out.println(gm.getScoreTotal());
+		System.out.println(gm.getPossTotal());
 	}
 }
