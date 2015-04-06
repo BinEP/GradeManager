@@ -249,10 +249,62 @@ public class DatabaseManagement {
 		}
 	}
 	
-	public ArrayList<String> getColumnDataCommand(String col) throws SQLException {
+	private ArrayList<String> getColumnDataCommand(String col) throws SQLException {
 		Statement matchRowsCommand = database.createStatement();
 		
 		String sql = "SELECT " + col + " FROM " + tableName;
+		ResultSet matchingRows = matchRowsCommand.executeQuery(sql);
+		
+		ArrayList<String> results = new ArrayList<String>();
+		while (matchingRows.next()) {
+			results.add(matchingRows.getString(col));
+		}
+		
+		matchingRows.close();
+		matchRowsCommand.close();
+		database.commit();
+		return results;
+	}
+	
+	public ArrayList<String> getColumnData(String col, String colMatch, String match) {
+		try {
+			return getColumnDataCommand(col, colMatch, match);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	private ArrayList<String> getColumnDataCommand(String col, String colMatch, String match) throws SQLException {
+		Statement matchRowsCommand = database.createStatement();
+		
+		String sql = "SELECT " + col + " FROM " + tableName + " WHERE " + colMatch + " = \"" + match + "\"";
+		ResultSet matchingRows = matchRowsCommand.executeQuery(sql);
+		
+		ArrayList<String> results = new ArrayList<String>();
+		while (matchingRows.next()) {
+			results.add(matchingRows.getString(col));
+		}
+		
+		matchingRows.close();
+		matchRowsCommand.close();
+		database.commit();
+		return results;
+	}
+	
+	public ArrayList<String> getColumnData(String col, String condition) {
+		try {
+			return getColumnDataCommand(col, condition);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	private ArrayList<String> getColumnDataCommand(String col, String condition) throws SQLException {
+		Statement matchRowsCommand = database.createStatement();
+		
+		String sql = "SELECT " + col + " FROM " + tableName + " WHERE " + condition;
 		ResultSet matchingRows = matchRowsCommand.executeQuery(sql);
 		
 		ArrayList<String> results = new ArrayList<String>();

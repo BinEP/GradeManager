@@ -61,6 +61,24 @@ public class GradeManager {
 		return sum;
 	}
 	
+	public int getColumnTotal(String col, String theClass) {
+		String[] allScores = toNormalArray(scores.getColumnData(col, "CLASS", theClass));
+		int sum = 0;
+		for (String s : allScores) {
+			sum += Integer.parseInt(s);
+		}
+		return sum;
+	}
+	
+	public int getColumnTotal(String col, String condition, boolean r) {
+		String[] allScores = toNormalArray(scores.getColumnData(col, condition));
+		int sum = 0;
+		for (String s : allScores) {
+			sum += Integer.parseInt(s);
+		}
+		return sum;
+	}
+	
 	public int getNumOfAssignments(String theClass) {
 		if (theClass.equals("all")) return getAllAssignments().length;
 		return getClassAssignments(theClass).length;

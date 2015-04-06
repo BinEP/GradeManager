@@ -46,8 +46,7 @@ public class MainFrame extends JFrame {
 	private GradeManager grades = new GradeManager();
 	private JTextField textField_2;
 	private JTextField textField;
-	private JTable table;
-	private JScrollPane scrollPane_1;
+	private JTable scoreTable;
 
 	private void addAssignment(JComboBox<String> comboBox) {
 		grades.addAssignment(txtAssignment.getText(), textField.getText(),
@@ -87,35 +86,108 @@ public class MainFrame extends JFrame {
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
-		
-		JScrollPane scrollPane = new JScrollPane();
-		JPanel panel_1 = new JPanel();
-		
-		table = new JTable();
-		table.addPropertyChangeListener(new PropertyChangeListener() {
-			public void propertyChange(PropertyChangeEvent evt) {
-			}
-		});
-//		JTable sumTable = new JTable();
-		
-//		table = new JTable(grades.getAllAssignments(), grades.getAssignmentHeaders());
-		tabbedPane.addTab("All", null, panel_1, null);
-		panel_1.setLayout(new BorderLayout(0, 0));
-		scrollPane = new JScrollPane(table);
-		panel_1.add(scrollPane);
-		
-//		for (String s : grades.getClasses()) {
-//			
-//			table = new JTable(grades.getClassAssignments(s), grades.getAssignmentHeaders());
-//			scrollPane = new JScrollPane(table);
-//			panel_1 = new JPanel();
-//			panel_1.add(scrollPane);
-//			tabbedPane.addTab(s, null, panel_1, null);
-//		}
-		
+
+		makeTables(tabbedPane);
+
 		JPanel panel = new JPanel();
 		contentPane.add(panel, BorderLayout.WEST);
 		panel.setLayout(new GridLayout(20, 1, 0, 0));
+
+		makeSideBar(panel);
+	}
+
+	private void makeTables(JTabbedPane tabbedPane) {
+
+		scoreTable = new JTable();
+		scoreTable.addPropertyChangeListener(new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent evt) {
+			}
+		});
+
+		String[] colHeaders = { "Total Points", "Scored Points", "Out Of",
+				"Percent", "" };
+		
+		JPanel scoreWrapper = new JPanel();
+		
+		JScrollPane scorePane = makeAllScoresTable();
+//		JScrollPane sumPane = makeAllSumTable(colHeaders);
+		JScrollPane sumPane = makeSumTable(colHeaders, "All");
+		
+		scoreWrapper.add(scorePane);
+		scoreWrapper.add(sumPane);
+
+		tabbedPane.addTab("All", null, scoreWrapper, null);
+
+		for (String s : grades.getClasses()) {
+			
+			scoreWrapper = new JPanel();
+			
+			scorePane = makeClassScoreTable(s);
+//			sumPane = makeClassSumTable(colHeaders, s);
+			sumPane = makeSumTable(colHeaders, s);
+			
+			scoreWrapper.add(scorePane);
+			scoreWrapper.add(sumPane);
+
+			tabbedPane.addTab(s, null, scoreWrapper, null);
+		}
+	}
+
+	private JScrollPane makeClassScoreTable(String s) {
+		scoreTable = new JTable(grades.getClassAssignments(s),
+				grades.getAssignmentHeaders());
+		JScrollPane scorePane = new JScrollPane(scoreTable);
+		return scorePane;
+	}
+
+	private JScrollPane makeAllScoresTable() {
+		scoreTable = new JTable(grades.getAllAssignments(),
+				grades.getAssignmentHeaders());
+		JScrollPane scorePane = new JScrollPane(scoreTable);
+		return scorePane;
+	}
+	
+	private JScrollPane makeClassSumTable(String[] colHeaders, String s) {
+		int scoreTotal = grades.getColumnTotal("POINTS", s);
+		int possTotal = grades.getColumnTotal("OUTOF", s);
+		double percent = getPercent(scoreTotal, possTotal);
+		String[][] classRowData = {{ "Total", "" + scoreTotal,
+				"" + possTotal, "" + percent + "%", "" }};
+		JTable sumTable = new JTable(classRowData, colHeaders);
+		JScrollPane sumPane = new JScrollPane(sumTable);
+		return sumPane;
+	}
+
+	private JScrollPane makeAllSumTable(String[] colData) {
+		int scoreTotal = grades.getScoreTotal();
+		int possTotal = grades.getPossTotal();
+		double percent = getPercent(scoreTotal, possTotal);
+		String[][] rowData = { { "Total", "" + scoreTotal, "" + possTotal,
+				"" + percent + "%", "" } };
+		JTable sumTable = new JTable(rowData, colData);
+		JScrollPane sumPane = new JScrollPane(sumTable);
+		return sumPane;
+	}
+	
+	private JScrollPane makeSumTable(String[] colData, String s) {
+		if (s.equals("All")) s = "%";
+		int scoreTotal = grades.getColumnTotal("POINTS", "CLASS LIKE '" + s + "'", true);
+		int possTotal = grades.getColumnTotal("OUTOF", "CLASS LIKE '" + s + "'", true);
+		double percent = getPercent(scoreTotal, possTotal);
+		String[][] rowData = { { "Total", "" + scoreTotal, "" + possTotal,
+				"" + percent + "%", "" } };
+		JTable sumTable = new JTable(rowData, colData);
+		JScrollPane sumPane = new JScrollPane(sumTable);
+		return sumPane;
+	}
+
+	private double getPercent(int scoreTotal, int possTotal) {
+		double percent = Math.round((double) scoreTotal / (double) possTotal
+				* 100.0 * 100.0) / 100.0;
+		return percent;
+	}
+
+	private void makeSideBar(JPanel panel) {
 
 		JLabel lblAddAssignment = new JLabel("Add Assignment");
 		lblAddAssignment.setHorizontalAlignment(SwingConstants.CENTER);
@@ -195,6 +267,7 @@ public class MainFrame extends JFrame {
 			}
 		});
 		panel.add(btnAddClass);
+
 	}
 
 }
