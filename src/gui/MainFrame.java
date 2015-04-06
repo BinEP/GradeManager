@@ -39,24 +39,19 @@ public class MainFrame extends JFrame {
 	private JPanel contentPane;
 	private JTextField txtAssignment;
 	private JTextField textField_1;
-	
+
 	private GradeManager grades = new GradeManager();
 	private JTextField textField_2;
 	private JTextField textField;
 	private JTable table;
 
 	private void addAssignment(JComboBox<String> comboBox) {
-		grades.addAssignment(txtAssignment.getText(), textField.getText(), textField_1.getText(), (String) comboBox.getSelectedItem());
+		grades.addAssignment(txtAssignment.getText(), textField.getText(),
+				textField_1.getText(), (String) comboBox.getSelectedItem());
 	}
 
 	private void addClass() {
 		grades.addClass(textField_2.getText());
-	}
-	
-	private void assigmentsInJtable(JTable table) {
-		table.
-		
-		
 	}
 
 	/**
@@ -85,91 +80,91 @@ public class MainFrame extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));
-		
+
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
-		
-		table = new JTable();
+
+		table = new JTable(grades.getAllAssignments(), grades.getAssignmentHeaders());
 		tabbedPane.addTab("All", null, table, null);
 		for (String s : grades.getClasses()) {
-			table = new JTable();
+			table = new JTable(grades.getClassAssignments(s), grades.getAssignmentHeaders());
 			tabbedPane.addTab(s, null, table, null);
 		}
-		
+
 		JPanel panel = new JPanel();
 		contentPane.add(panel, BorderLayout.WEST);
 		panel.setLayout(new GridLayout(20, 1, 0, 0));
-		
+
 		JLabel lblAddAssignment = new JLabel("Add Assignment");
 		lblAddAssignment.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(lblAddAssignment);
-		
+
 		Component rigidArea = Box.createRigidArea(new Dimension(200, 20));
 		panel.add(rigidArea);
-		
+
 		JLabel lblAssignmentName = new JLabel("Assignment Name");
 		lblAssignmentName.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(lblAssignmentName);
-		
+
 		txtAssignment = new JTextField();
 		txtAssignment.setText("assignment");
 		panel.add(txtAssignment);
 		txtAssignment.setColumns(10);
-		
+
 		Component rigidArea_2 = Box.createRigidArea(new Dimension(20, 20));
 		panel.add(rigidArea_2);
-		
+
 		JLabel lblScore = new JLabel("Score");
 		lblScore.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(lblScore);
-		
+
 		textField = new JTextField();
 		textField.setMinimumSize(new Dimension(10, 28));
 		textField.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(textField);
 		textField.setColumns(4);
-		
+
 		JLabel lblOutOf = new JLabel("Out Of");
 		lblOutOf.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(lblOutOf);
-		
+
 		textField_1 = new JTextField();
 		panel.add(textField_1);
 		textField_1.setColumns(10);
-		
+
 		Component rigidArea_3 = Box.createRigidArea(new Dimension(20, 20));
 		panel.add(rigidArea_3);
-		
+
 		JComboBox<String> comboBox = new JComboBox<String>();
 		comboBox.setModel(new DefaultComboBoxModel<String>(grades.getClasses()));
 		comboBox.setSelectedIndex(0);
 		panel.add(comboBox);
-		
+
 		JButton btnAddAssignment = new JButton("Add Assignment");
 		btnAddAssignment.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				addAssignment(comboBox); 
+				addAssignment(comboBox);
 			}
 		});
 		panel.add(btnAddAssignment);
-		
+
 		JSeparator separator = new JSeparator();
 		panel.add(separator);
-		
+
 		JLabel lblAddClass = new JLabel("Add Class");
 		panel.add(lblAddClass);
-		
+
 		Component rigidArea_1 = Box.createRigidArea(new Dimension(20, 20));
 		panel.add(rigidArea_1);
-		
+
 		JLabel lblClass = new JLabel("Class");
 		panel.add(lblClass);
-		
+
 		textField_2 = new JTextField();
 		panel.add(textField_2);
 		textField_2.setColumns(10);
-		
+
 		JButton btnAddClass = new JButton("Add Class");
 		btnAddClass.addMouseListener(new MouseAdapter() {
 			@Override

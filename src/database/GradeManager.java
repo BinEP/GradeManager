@@ -23,6 +23,7 @@ public class GradeManager {
 	}
 	
 	public String[][] getClassAssignments(String yourClass) {
+		if (yourClass.equals("All")) return getAllAssignments();
 		return toListNormalArray(scores.getMatchingRows("CLASS", yourClass));
 	}
 	
@@ -34,8 +35,17 @@ public class GradeManager {
 		return getIndexOfArrays(toListNormalArray(classes.selectData()), 0);
 	}
 	
+	public String[] getAssignmentHeaders() {
+		return scores.getColumnNames();
+	}
+	
 	public String[][] getAllAssignments() {
 		return toListNormalArray(scores.selectData());
+	}
+	
+	public int getNumOfAssignments(String theClass) {
+		if (theClass.equals("all")) return getAllAssignments().length;
+		return getClassAssignments(theClass).length;
 	}
 	
 	public String[][] getAssignmentsSorted(boolean up, String... colsSortBy) {
