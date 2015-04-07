@@ -16,8 +16,8 @@ public class Tester {
 		
 //		printDatabaseContents(classes, scores);
 		
-//		classes.clearTable();
-//		scores.clearTable();
+		classes.clearTable();
+		scores.clearTable();
 		
 //		printDatabaseContents(classes, scores);
 //		

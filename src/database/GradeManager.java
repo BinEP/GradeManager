@@ -1,6 +1,9 @@
 package database;
 
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
+
+import javax.swing.JTable;
 
 public class GradeManager {
 
@@ -107,6 +110,7 @@ public class GradeManager {
 	}
 	
 	private String[][] toListNormalArray(ArrayList<String[]> arr) {
+		if (arr == null || arr.size() == 0) return new String[0][0];
 		String[][] newArr = new String[arr.size()][arr.get(0).length];
 		int index = 0;
 		for (String[] s : arr) {

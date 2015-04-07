@@ -36,7 +36,14 @@ import javax.swing.JSeparator;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.table.DefaultTableModel;
 
 public class MainFrame extends JFrame {
 
@@ -49,7 +56,15 @@ public class MainFrame extends JFrame {
 	private JTextField textField_2;
 	private JTextField textField;
 	private JTable scoreTable;
+	private JTable sumTable;
+	private JComboBox<String> comboBox;
+	private JTabbedPane tabbedPane;
+	private HashMap<String, JTable> assignmentTables = new HashMap<String, JTable>();
+	private HashMap<String, JTable> sumTables = new HashMap<String, JTable>();
 
+	private String[] colHeaders = { "Total Points", "Scored Points", "Out Of",
+		"Percent", "" };;
+	
 	private void addAssignment(JComboBox<String> comboBox) {
 		grades.addAssignment(txtAssignment.getText(), textField.getText(),
 				textField_1.getText(), (String) comboBox.getSelectedItem());
@@ -86,7 +101,15 @@ public class MainFrame extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));
 
-		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				 JTabbedPane sourceTabbedPane = (JTabbedPane) e.getSource();
+			        int index = sourceTabbedPane.getSelectedIndex();
+			        System.out.println("Tab changed to: " + sourceTabbedPane.getTitleAt(index));
+//			        updateTable(sourceTabbedPane, index);
+			}
+		});
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
 
 		makeTables(tabbedPane);
@@ -106,9 +129,6 @@ public class MainFrame extends JFrame {
 			}
 		});
 
-		String[] colHeaders = { "Total Points", "Scored Points", "Out Of",
-				"Percent", "" };
-
 		addAllTabs(tabbedPane, colHeaders);
 	}
 
@@ -121,20 +141,21 @@ public class MainFrame extends JFrame {
 		for (String s : classList) {
 
 			scoreWrapper = new JPanel();
-
+			
 			scorePane = makeClassScoreTable(s);
 			sumPane = makeSumTable(colHeaders, s);
 
 			scoreWrapper.add(scorePane);
 			scoreWrapper.add(sumPane);
-
+			
 			tabbedPane.addTab(s, null, scoreWrapper, null);
 		}
 	}
 
 	private JScrollPane makeClassScoreTable(String s) {
-		scoreTable = new JTable(grades.getClassAssignments(s),
-				grades.getAssignmentHeaders());
+		scoreTable = new JTable(new DefaultTableModel(grades.getClassAssignments(s),
+				grades.getAssignmentHeaders()));
+		assignmentTables.put(s, scoreTable);
 		JScrollPane scorePane = new JScrollPane(scoreTable);
 		return scorePane;
 	}
@@ -149,9 +170,53 @@ public class MainFrame extends JFrame {
 		double percent = getPercent(scoreTotal, possTotal);
 		String[][] rowData = { { "Total", "" + scoreTotal, "" + possTotal,
 				"" + percent + "%", "" } };
-		JTable sumTable = new JTable(rowData, colData);
+		sumTable = new JTable(new DefaultTableModel(rowData, colData));
+		sumTables.put(s, sumTable);
 		JScrollPane sumPane = new JScrollPane(sumTable);
 		return sumPane;
+	}
+	
+	private void updateTables(boolean assignment) {
+		//assignments
+		
+		if (assignment) {
+		String className = (String) comboBox.getSelectedItem();
+		SimpleDateFormat date = new SimpleDateFormat("MM:dd:yyy");
+		String theDate = date.format(new Date());
+		String[] rowData = {txtAssignment.getText(), textField.getText(),
+				textField_1.getText(), (String) comboBox.getSelectedItem(), theDate};
+		
+		grades.addAssignment(txtAssignment.getText(), textField.getText(),
+				textField_1.getText(), (String) comboBox.getSelectedItem());
+		JTable table = assignmentTables.get(className);
+		DefaultTableModel model = (DefaultTableModel) (table.getModel());
+		
+		model.addRow(rowData);
+		
+		table = assignmentTables.get("All");
+		model = (DefaultTableModel) (table.getModel());
+		
+		model.addRow(rowData);
+		} else {
+		//classes
+		String theNewClass = textField_2.getText();
+		grades.addClass(theNewClass);
+		
+		JPanel scoreWrapper;
+		JScrollPane scorePane;
+		JScrollPane sumPane;
+		
+		scoreWrapper = new JPanel();
+		
+		scorePane = makeClassScoreTable(theNewClass);
+		sumPane = makeSumTable(colHeaders, theNewClass);
+
+		scoreWrapper.add(scorePane);
+		scoreWrapper.add(sumPane);
+		comboBox.setModel(new DefaultComboBoxModel<String>(grades.getClasses()));
+		tabbedPane.addTab(theNewClass, null, scoreWrapper, null);
+		}
+		
 	}
 
 	private double getPercent(int scoreTotal, int possTotal) {
@@ -202,16 +267,21 @@ public class MainFrame extends JFrame {
 		Component rigidArea_3 = Box.createRigidArea(new Dimension(20, 20));
 		panel.add(rigidArea_3);
 
-		JComboBox<String> comboBox = new JComboBox<String>();
+		comboBox = new JComboBox<String>();
 		comboBox.setModel(new DefaultComboBoxModel<String>(grades.getClasses()));
-		comboBox.setSelectedIndex(0);
+		try {
+			comboBox.setSelectedIndex(0);
+		} catch (IllegalArgumentException e) {
+			System.out.println("No Classes");
+		}
 		panel.add(comboBox);
 
 		JButton btnAddAssignment = new JButton("Add Assignment");
 		btnAddAssignment.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				addAssignment(comboBox);
+//				addAssignment(comboBox);
+				updateTables(true);
 			}
 		});
 		panel.add(btnAddAssignment);
@@ -236,11 +306,12 @@ public class MainFrame extends JFrame {
 		btnAddClass.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				addClass();
+//				addClass();
+				updateTables(false);
 			}
 		});
 		panel.add(btnAddClass);
 
-	}
+	}	
 
 }
