@@ -3,6 +3,7 @@ package database;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 public class DatabaseManagement {
@@ -15,22 +16,10 @@ public class DatabaseManagement {
 	private String db;
 	private int uniqueID = 1;
 	private String[][] fields;
-	private boolean addDate = true;
 
 	public DatabaseManagement(String database, String[]... fields) {
 		this.db = database;
 		fields = newFields(fields);
-		this.fields = fields;
-		tableName = (database.equals(CLASSES_DB)) ? "CLASSES" : "SCORES";
-		connect();
-	}
-	
-	public DatabaseManagement(String database, boolean addDate, String[]... fields) {
-		this.db = database;
-		setShowDate(addDate);
-		if (addDate) {
-			fields = newFields(fields);
-		}
 		this.fields = fields;
 		tableName = (database.equals(CLASSES_DB)) ? "CLASSES" : "SCORES";
 		connect();
@@ -55,7 +44,7 @@ public class DatabaseManagement {
 		System.out.println("Opened database successfully");
 	}
 	
-	public String[][] newFields(String[][] fields) {
+	private String[][] newFields(String[][] fields) {
 		String[][] newFields = new String[fields.length + 1][2];
 		for (int i = 0; i < fields.length; i++) {
 			newFields[i] = fields[i];
@@ -109,29 +98,29 @@ public class DatabaseManagement {
 		Statement insertDataCommand = database.createStatement();
 		String sql = "INSERT INTO " + tableName + " (ID";
 
-		for (String[] s : fields)
+		for (String[] s : Arrays.copyOfRange(fields, 1, fields.length))
 			sql += "," + s[0];
-		sql += ")         ";
-		sql += "VALUES (" + uniqueID;
+		sql += ")  VALUES (" + uniqueID;
 
 		for (int i = 0; i < info.length; i++) {
-			String ifQuote = (fields[i][1].equals("TEXT")) ? "'" : "";
-			sql += " , " + ifQuote + 
-				info[i] + ifQuote;
+			String ifQuote = ifTextField(i) ? "'" : "";
+			sql += " , " + ifQuote + info[i] + ifQuote;
 		}
-		if (addDate) {
-			SimpleDateFormat date = new SimpleDateFormat("MM:dd:yyy");
-			sql += " , '" + date.format(new Date()) +"'";
-		}
-
-		sql += ");";
+		
+		SimpleDateFormat date = new SimpleDateFormat("MM:dd:yyy");
+		sql += " , '" + date.format(new Date()) +"');";
+		
 		uniqueID++;
 		insertDataCommand.executeUpdate(sql);
-
 		insertDataCommand.close();
+		
 		database.commit();
 		closeConnections();
 		System.out.println("Records created successfully");
+	}
+
+	private boolean ifTextField(int i) {
+		return fields[i + 1][1].equals("TEXT");
 	}
 
 	public ArrayList<String[]> selectData() {
@@ -164,25 +153,25 @@ public class DatabaseManagement {
 		return results;
 	}
 
-	public void sortData() {
-		try {
-			sortDataCommand();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void sortDataCommand() throws SQLException {
-
-		connect();
-		Statement sortData = database.createStatement();
-		sortData.executeQuery("SELECT * FROM " + tableName
-				+ " ORDER BY SCORE, " + fields[0] + " ASC");
-
-		sortData.close();
-		database.commit();
-		closeConnections();
-	}
+//	public void sortData() {
+//		try {
+//			sortDataCommand();
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//
+//	private void sortDataCommand() throws SQLException {
+//
+//		connect();
+//		Statement sortData = database.createStatement();
+//		sortData.executeQuery("SELECT * FROM " + tableName
+//				+ " ORDER BY SCORE, " + fields[0] + " ASC");
+//
+//		sortData.close();
+//		database.commit();
+//		closeConnections();
+//	}
 	
 	public void clearTable() {
 		try {
@@ -266,32 +255,6 @@ public class DatabaseManagement {
 		return results;
 	}
 	
-	public ArrayList<String> getColumnData(String col, String colMatch, String match) {
-		try {
-			return getColumnDataCommand(col, colMatch, match);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	private ArrayList<String> getColumnDataCommand(String col, String colMatch, String match) throws SQLException {
-		Statement matchRowsCommand = database.createStatement();
-		
-		String sql = "SELECT " + col + " FROM " + tableName + " WHERE " + colMatch + " = \"" + match + "\"";
-		ResultSet matchingRows = matchRowsCommand.executeQuery(sql);
-		
-		ArrayList<String> results = new ArrayList<String>();
-		while (matchingRows.next()) {
-			results.add(matchingRows.getString(col));
-		}
-		
-		matchingRows.close();
-		matchRowsCommand.close();
-		database.commit();
-		return results;
-	}
-	
 	public ArrayList<String> getColumnData(String col, String condition) {
 		try {
 			return getColumnDataCommand(col, condition);
@@ -316,10 +279,6 @@ public class DatabaseManagement {
 		matchRowsCommand.close();
 		database.commit();
 		return results;
-	}
-	
- 	public void setShowDate(boolean addDate) {
-		this.addDate = addDate;
 	}
 	
 	public ArrayList<String[]> sortBy(boolean up, String... col) {
@@ -358,6 +317,11 @@ public class DatabaseManagement {
 		
 		closeConnections();
 		return results;
+	}
+	
+	public int newID() {
+		uniqueID = selectData().size() + 1;
+		return uniqueID;
 	}
 
 	public void closeConnections() {

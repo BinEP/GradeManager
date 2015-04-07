@@ -11,13 +11,13 @@ public class Tester {
 		
 		String[][] fields = {{"NAME", "TEXT"}};
 		DatabaseManagement classes = new DatabaseManagement(DatabaseManagement.CLASSES_DB, fields[0]);
-		String[][] fields1 = {{"ASSIGNMENT", "TEXT"}, {"POINTS", "INT"}, {"OUTOF", "INT"}, {"CLASS", "TEXT"}};
+		String[][] fields1 = {{"ID", "INT"}, {"ASSIGNMENT", "TEXT"}, {"POINTS", "INT"}, {"OUTOF", "INT"}, {"CLASS", "TEXT"}};
 		DatabaseManagement scores = new DatabaseManagement(DatabaseManagement.SCORES_DB, fields1[0], fields1[1], fields1[2], fields1[3]);
 		
 //		printDatabaseContents(classes, scores);
 		
-		classes.clearTable();
-		scores.clearTable();
+//		classes.clearTable();
+//		scores.clearTable();
 		
 //		printDatabaseContents(classes, scores);
 //		

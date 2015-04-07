@@ -49,7 +49,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
-public class MainFrame extends JFrame implements CellEditorListener{
+public class MainFrame extends JFrame implements CellEditorListener {
 
 	private static final long serialVersionUID = -3136693642689296249L;
 	private JPanel contentPane;
@@ -68,7 +68,7 @@ public class MainFrame extends JFrame implements CellEditorListener{
 
 	private String[] colHeaders = grades.getAssignmentHeaders();
 
-	private void addAssignment(JComboBox<String> comboBox) {
+	private void addAssignment() {
 		grades.addAssignment(txtAssignment.getText(), textField.getText(),
 				textField_1.getText(), (String) comboBox.getSelectedItem());
 	}
@@ -97,6 +97,32 @@ public class MainFrame extends JFrame implements CellEditorListener{
 	 * Create the frame.
 	 */
 	public MainFrame() {
+		setupOuterPane();
+		makePanes(tabbedPane);
+
+		JPanel panel = new JPanel();
+		contentPane.add(panel, BorderLayout.WEST);
+		panel.setLayout(new GridLayout(20, 1, 0, 0));
+		makeSideBar(panel);
+		
+		addChangeToTabs();
+	}
+
+	private void addChangeToTabs() {
+		tabbedPane.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				JTabbedPane sourceTabbedPane = (JTabbedPane) e.getSource();
+				int index = sourceTabbedPane.getSelectedIndex();
+				String title = sourceTabbedPane.getTitleAt(index);
+				if (title == null)
+					return;
+				System.out.println("Tab changed to: " + title);
+				comboBox.setSelectedItem(title);
+			}
+		});
+	}
+
+	private void setupOuterPane() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 700, 700);
 		contentPane = new JPanel();
@@ -107,182 +133,127 @@ public class MainFrame extends JFrame implements CellEditorListener{
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
-
-		makeTables(tabbedPane);
-
-		JPanel panel = new JPanel();
-		contentPane.add(panel, BorderLayout.WEST);
-		panel.setLayout(new GridLayout(20, 1, 0, 0));
-
-		makeSideBar(panel);
-
-		tabbedPane.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				JTabbedPane sourceTabbedPane = (JTabbedPane) e.getSource();
-				int index = sourceTabbedPane.getSelectedIndex();
-				String title = sourceTabbedPane.getTitleAt(index);
-				if (title == null)
-					return;
-				System.out.println("Tab changed to: " + title);
-				// updateTable(sourceTabbedPane, index);
-
-				comboBox.setSelectedItem(title);
-			}
-		});
 	}
 
-	private void makeTables(JTabbedPane tabbedPane) {
+	private void makePanes(JTabbedPane tabbedPane) {
 
 		scoreTable = new JTable();
 		scoreTable.addPropertyChangeListener(new PropertyChangeListener() {
 			public void propertyChange(PropertyChangeEvent evt) {
 			}
 		});
-
-		addAllTabs(tabbedPane, colHeaders);
+		addAllTabs(colHeaders);
 	}
 
-	private void addAllTabs(JTabbedPane tabbedPane, String[] colHeaders) {
-		JPanel scoreWrapper;
-		JScrollPane scorePane;
-		JScrollPane sumPane;
+	private void addAllTabs(String[] colHeaders) {
+		
 		ArrayList<String> classList = grades.getClassesList();
 		classList.add(0, "All");
+		
 		for (String s : classList) {
-
-			scoreWrapper = new JPanel();
-
-			scorePane = makeClassScoreTable(s);
-			sumPane = makeSumTable(s);
-
-			scoreWrapper.add(scorePane);
-			scoreWrapper.add(sumPane);
-
-			tabbedPane.addTab(s, null, scoreWrapper, null);
+			contructTabComponents(s);
 		}
 	}
 
-	private JScrollPane makeClassScoreTable(String s) {
+	private void contructTabComponents(String s) {
+		JPanel scoreWrapper;
+		JScrollPane scorePane;
+		JScrollPane sumPane;
+		
+		scoreWrapper = new JPanel();
+
+		scorePane = makeClassScorePane(s);
+		sumPane = makeClassSumPane(s);
+
+		scoreWrapper.add(scorePane);
+		scoreWrapper.add(sumPane);
+
+		tabbedPane.addTab(s, null, scoreWrapper, null);
+	}
+
+	private JScrollPane makeClassScorePane(String s) {
 		scoreTable = new JTable(new DefaultTableModel(
 				grades.getClassAssignments(s), grades.getAssignmentHeaders()));
+		
 		assignmentTables.put(s, scoreTable);
 		scoreTable.putClientProperty("terminateEditOnFocusLost", true);
-		scoreTable.getModel().addTableModelListener(new TableModelListener() {
-		      public void tableChanged(TableModelEvent e) {
-		         System.out.println(e);
-		         
-		      }
-		    });
+		
+		addTableListener();
 		TableColumnModel tm = scoreTable.getColumnModel();
+		tm.removeColumn(tm.getColumn(0));
 		JScrollPane scorePane = new JScrollPane(scoreTable);
 		return scorePane;
 	}
 
-	private JScrollPane makeSumTable(String s) {
+	private JScrollPane makeClassSumPane(String s) {
 		makeNewSumTable(s);
 		JScrollPane sumPane = new JScrollPane(sumTable);
 		return sumPane;
 	}
 
-	private JTable makeNewSumTable(String s) {
+	private DefaultTableModel makeNewSumTable(String s) {
 		String s1 = s;
-		if (s.equals("All")) {
+		if (s.equals("All")) 
 			s1 = "%";
-		}
-		int scoreTotal = grades.getColumnTotal("POINTS", "CLASS LIKE '" + s1
-				+ "'", true);
-		int possTotal = grades.getColumnTotal("OUTOF", "CLASS LIKE '" + s1
-				+ "'", true);
+		
+		int scoreTotal = grades.getColumnTotal("POINTS", s1);
+		int possTotal = grades.getColumnTotal("OUTOF", s1);
 		double percent = getPercent(scoreTotal, possTotal);
-		String[][] rowData = { { "Total", "" + scoreTotal, "" + possTotal,
+		
+		String[][] rowData = { { "ID", "Total", "" + scoreTotal, "" + possTotal,
 				"" + percent + "%", "" } };
+		
 		sumTable = new JTable(new DefaultTableModel(rowData, colHeaders));
+		TableColumnModel tm = sumTable.getColumnModel();
+		tm.removeColumn(tm.getColumn(0));
 		sumTable.setEnabled(false);
 		sumTables.put(s, sumTable);
-		return sumTable;
+		return (DefaultTableModel) (sumTable.getModel());
 	}
 
 	private void updateTables(boolean assignment) {
-		// assignments
 
 		if (assignment) {
+			addAssignment();
+			
 			String className = (String) comboBox.getSelectedItem();
-			SimpleDateFormat date = new SimpleDateFormat("MM:dd:yyy");
-			String theDate = date.format(new Date());
-			String[] rowData = { txtAssignment.getText(), textField.getText(),
-					textField_1.getText(), (String) comboBox.getSelectedItem(),
-					theDate };
+			String[] rowData = getAssignmentData();
 
-			grades.addAssignment(txtAssignment.getText(), textField.getText(),
-					textField_1.getText(), (String) comboBox.getSelectedItem());
-			JTable table = assignmentTables.get(className);
-			DefaultTableModel model = (DefaultTableModel) (table.getModel());
-
+			DefaultTableModel model = (DefaultTableModel) (assignmentTables.get(className).getModel());
 			model.addRow(rowData);
 
-			table = assignmentTables.get("All");
-			model = (DefaultTableModel) (table.getModel());
-
+			model = (DefaultTableModel) (assignmentTables.get("All").getModel());
 			model.addRow(rowData);
-
-			table = sumTables.get(className);
-			model = (DefaultTableModel) (table.getModel());
-			if (className.equals("All"))
-				className = "%";
-			int scoreTotal = grades.getColumnTotal("POINTS", "CLASS LIKE '"
-					+ className + "'", true);
-			int possTotal = grades.getColumnTotal("OUTOF", "CLASS LIKE '"
-					+ className + "'", true);
-			double percent = getPercent(scoreTotal, possTotal);
-			String[][] rowData1 = { { "Total", "" + scoreTotal, "" + possTotal,
-					"" + percent + "%", "" } };
-			model.setDataVector(rowData1, colHeaders);
-
-			table = sumTables.get("All");
-			model = (DefaultTableModel) (table.getModel());
-			if (className.equals("All"))
-				className = "%";
-			scoreTotal = grades.getColumnTotal("POINTS", "CLASS LIKE '"
-					+ className + "'", true);
-			possTotal = grades.getColumnTotal("OUTOF", "CLASS LIKE '"
-					+ className + "'", true);
-			percent = getPercent(scoreTotal, possTotal);
-			String[][] rowData2 = { { "Total", "" + scoreTotal, "" + possTotal,
-					"" + percent + "%", "" } };
-			model.setDataVector(rowData2, colHeaders);
-			// table.setModel(model);
-
+			
+			sumTables.get(className).setModel(makeNewSumTable(className));
+			sumTables.get("All").setModel(makeNewSumTable("All"));
+			
 		} else {
-			// classes
-			String theNewClass = textField_2.getText();
-			grades.addClass(theNewClass);
-
-			JPanel scoreWrapper;
-			JScrollPane scorePane;
-			JScrollPane sumPane;
-
-			scoreWrapper = new JPanel();
-
-			scorePane = makeClassScoreTable(theNewClass);
-			sumPane = makeSumTable(theNewClass);
-
-			scoreWrapper.add(scorePane);
-			scoreWrapper.add(sumPane);
+			addClass();
+			contructTabComponents(textField_2.getText());
 			comboBox.setModel(new DefaultComboBoxModel<String>(grades
 					.getClasses()));
-			tabbedPane.addTab(theNewClass, null, scoreWrapper, null);
 		}
-
 	}
-	
+
+	private String[] getAssignmentData() {
+		SimpleDateFormat date = new SimpleDateFormat("MM:dd:yyy");
+		String theDate = date.format(new Date());
+		String[] rowData = { "" + grades.nextScoreID(),
+				txtAssignment.getText(), textField.getText(),
+				textField_1.getText(), (String) comboBox.getSelectedItem(),
+				theDate };
+		return rowData;
+	}
+
 	@Override
 	public void editingStopped(ChangeEvent e) {
-		
+
 	}
 
 	@Override
 	public void editingCanceled(ChangeEvent e) {
-		
+
 	}
 
 	private double getPercent(int scoreTotal, int possTotal) {
@@ -377,5 +348,13 @@ public class MainFrame extends JFrame implements CellEditorListener{
 			}
 		});
 		panel.add(btnAddClass);
+	}
+	
+	private void addTableListener() {
+		scoreTable.getModel().addTableModelListener(new TableModelListener() {
+			public void tableChanged(TableModelEvent e) {
+				System.out.println(e);
+			}
+		});
 	}
 }

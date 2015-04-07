@@ -11,10 +11,10 @@ public class GradeManager {
 	DatabaseManagement scores;
 	
 	public GradeManager() {
-		String[][] fields = {{"NAME", "TEXT"}};
-		classes = new DatabaseManagement(DatabaseManagement.CLASSES_DB, fields[0]);
-		String[][] fields1 = {{"ASSIGNMENT", "TEXT"}, {"POINTS", "INT"}, {"OUTOF", "INT"}, {"CLASS", "TEXT"}};
-		scores = new DatabaseManagement(DatabaseManagement.SCORES_DB, fields1[0], fields1[1], fields1[2], fields1[3]);
+		String[][] fields = {{"ID", "INT"}, {"NAME", "TEXT"}};
+		classes = new DatabaseManagement(DatabaseManagement.CLASSES_DB, fields);
+		String[][] fields1 = {{"ID", "INT"}, {"ASSIGNMENT", "TEXT"}, {"POINTS", "INT"}, {"OUTOF", "INT"}, {"CLASS", "TEXT"}};
+		scores = new DatabaseManagement(DatabaseManagement.SCORES_DB, fields1);
 	}
 	
 	public void addClass(String newClass) {
@@ -35,12 +35,12 @@ public class GradeManager {
 	}
 	
 	public String[] getClasses() {
-		return getIndexOfArrays(toListNormalArray(classes.selectData()), 0);
+		return getIndexOfArrays(toListNormalArray(classes.selectData()), 1);
 	}
 	
 	public ArrayList<String> getClassesList() {
 		ArrayList <String> classList = new ArrayList<String>();
-		for (String c : getIndexOfArrays(toListNormalArray(classes.selectData()), 0)) {
+		for (String c : getIndexOfArrays(toListNormalArray(classes.selectData()), 1)) {
 			classList.add(c);
 		}
 		return classList;
@@ -54,35 +54,10 @@ public class GradeManager {
 		return toListNormalArray(scores.selectData());
 	}
 	
-	public int getScoreTotal() {
-		String[] allScores = toNormalArray(scores.getColumnData("POINTS"));
-		int sum = 0;
-		for (String s : allScores) {
-			sum += Integer.parseInt(s);
-		}
-		return sum;
-	}
-	
-	public int getPossTotal() {
-		String[] allScores = toNormalArray(scores.getColumnData("OUTOF"));
-		int sum = 0;
-		for (String s : allScores) {
-			sum += Integer.parseInt(s);
-		}
-		return sum;
-	}
-	
 	public int getColumnTotal(String col, String theClass) {
-		String[] allScores = toNormalArray(scores.getColumnData(col, "CLASS", theClass));
-		int sum = 0;
-		for (String s : allScores) {
-			sum += Integer.parseInt(s);
-		}
-		return sum;
-	}
-	
-	public int getColumnTotal(String col, String condition, boolean r) {
-		String[] allScores = toNormalArray(scores.getColumnData(col, condition));
+		if (theClass.equals("All")) theClass = "%";
+		String[] allScores = toNormalArray(scores.getColumnData(col, "CLASS LIKE '" + theClass
+				+ "'"));
 		int sum = 0;
 		for (String s : allScores) {
 			sum += Integer.parseInt(s);
@@ -128,6 +103,14 @@ public class GradeManager {
 		return newArr;
 	}
 	
+	public int nextScoreID() {
+		return scores.newID();
+	}
+	
+	public int nextClassID() {
+		return classes.newID();
+	}
+	
 	public static void main(String[] args) {
 		GradeManager gm = new GradeManager();
 		for (String s : gm.getAssignmentHeaders()) {
@@ -139,7 +122,7 @@ public class GradeManager {
 			}
 			System.out.println();
 		}
-		System.out.println(gm.getScoreTotal());
-		System.out.println(gm.getPossTotal());
+		System.out.println(gm.getColumnTotal("POINTS", "All"));
+		System.out.println(gm.getColumnTotal("OUTOF", "All"));
 	}
 }
