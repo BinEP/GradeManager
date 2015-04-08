@@ -40,6 +40,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Vector;
 
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeListener;
@@ -211,7 +212,7 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		return (DefaultTableModel) (sumTable.getModel());
 	}
 
-	private void updateTables(boolean assignment) {
+	private void addAssignmentUpdateTables(boolean assignment) {
 
 		if (assignment) {
 			addAssignment();
@@ -225,8 +226,7 @@ public class MainFrame extends JFrame implements CellEditorListener {
 			model = (DefaultTableModel) (assignmentTables.get("All").getModel());
 			model.addRow(rowData);
 			
-			sumTables.get(className).setModel(makeNewSumTable(className));
-			sumTables.get("All").setModel(makeNewSumTable("All"));
+			refreshSumTables(className);
 			
 		} else {
 			addClass();
@@ -234,6 +234,34 @@ public class MainFrame extends JFrame implements CellEditorListener {
 			comboBox.setModel(new DefaultComboBoxModel<String>(grades
 					.getClasses()));
 		}
+	}
+
+	private void refreshSumTables(String className) {
+		sumTables.get(className).setModel(makeNewSumTable(className));
+		sumTables.get("All").setModel(makeNewSumTable("All"));
+	}
+	
+	private void refreshTables(String className, String id, int col, String newValue) {
+		
+		DefaultTableModel model = (DefaultTableModel) (assignmentTables.get(className).getModel());
+		updateTaleValue(id, col, newValue, model);
+		
+		model = (DefaultTableModel) (assignmentTables.get("All").getModel());
+		updateTaleValue(id, col, newValue, model);
+		
+		refreshSumTables(className);
+	}
+
+	private void updateTaleValue(String id, int col, String newValue,
+			DefaultTableModel model) {
+		int index = 0;
+		for (Object v1 : model.getDataVector()) {
+			Vector<?> v = (Vector<?>) v1;
+			if (v.elementAt(0).equals(id)) break;
+			index++;
+		}
+		
+		model.setValueAt(newValue, index, col);
 	}
 
 	private String[] getAssignmentData() {
@@ -248,12 +276,12 @@ public class MainFrame extends JFrame implements CellEditorListener {
 
 	@Override
 	public void editingStopped(ChangeEvent e) {
-
+		
 	}
 
 	@Override
 	public void editingCanceled(ChangeEvent e) {
-
+		
 	}
 
 	private double getPercent(int scoreTotal, int possTotal) {
@@ -318,7 +346,7 @@ public class MainFrame extends JFrame implements CellEditorListener {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				// addAssignment(comboBox);
-				updateTables(true);
+				addAssignmentUpdateTables(true);
 			}
 		});
 		panel.add(btnAddAssignment);
@@ -344,7 +372,7 @@ public class MainFrame extends JFrame implements CellEditorListener {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				// addClass();
-				updateTables(false);
+				addAssignmentUpdateTables(false);
 			}
 		});
 		panel.add(btnAddClass);
@@ -354,6 +382,16 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		scoreTable.getModel().addTableModelListener(new TableModelListener() {
 			public void tableChanged(TableModelEvent e) {
 				System.out.println(e);
+				e.getSource();
+				int row = e.getFirstRow();
+				int col = e.getColumn();
+				DefaultTableModel model = (DefaultTableModel) e.getSource();
+				String newValue = (String) (model.getValueAt(row, col));
+				String className = (String) (model.getValueAt(row, 4));
+				String id = (String) model.getValueAt(row, 0);
+				String columnName = model.getColumnName(col);
+				grades.updateScoreInfo(id, columnName, newValue);
+//				refreshTables(className, id, col, newValue);
 			}
 		});
 	}

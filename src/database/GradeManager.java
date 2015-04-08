@@ -25,6 +25,10 @@ public class GradeManager {
 		scores.insertInfo(assignmentName, score, possiblePoints, theClass);
 	}
 	
+	public void updateScoreInfo(String id, String column, String newValue) {
+		scores.updateInfo(id, column, newValue);
+	}
+	
 	public String[][] getClassAssignments(String yourClass) {
 		if (yourClass.equals("All")) return getAllAssignments();
 		return toListNormalArray(scores.getMatchingRows("CLASS", yourClass));

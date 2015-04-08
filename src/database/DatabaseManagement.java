@@ -122,6 +122,24 @@ public class DatabaseManagement {
 	private boolean ifTextField(int i) {
 		return fields[i + 1][1].equals("TEXT");
 	}
+	
+	public void updateInfo(String id, String column, String newValue) {
+		try {
+			updateInfoCommand(id, column, newValue);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void updateInfoCommand(String id, String column, String newValue) throws SQLException {
+		String sql = "UPDATE SCORES SET " + column + " = '" + newValue + "' WHERE ID = " + id + ";";
+		Statement updateInfoCommand = database.createStatement();
+		updateInfoCommand.executeUpdate(sql);
+		updateInfoCommand.close();
+		database.commit();
+		closeConnections();
+		System.out.println("Value Updated successsfully");
+	}
 
 	public ArrayList<String[]> selectData() {
 		try {
