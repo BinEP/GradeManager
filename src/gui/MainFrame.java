@@ -49,6 +49,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 
 public class MainFrame extends JFrame implements CellEditorListener {
 
@@ -139,24 +140,20 @@ public class MainFrame extends JFrame implements CellEditorListener {
 	private void makePanes(JTabbedPane tabbedPane) {
 
 		scoreTable = new JTable();
-		scoreTable.addPropertyChangeListener(new PropertyChangeListener() {
-			public void propertyChange(PropertyChangeEvent evt) {
-			}
-		});
-		addAllTabs(colHeaders);
+		addClassTabs(colHeaders);
 	}
 
-	private void addAllTabs(String[] colHeaders) {
+	private void addClassTabs(String[] colHeaders) {
 		
 		ArrayList<String> classList = grades.getClassesList();
 		classList.add(0, "All");
 		
 		for (String s : classList) {
-			contructTabComponents(s);
+			addPanesToClassTabs(s);
 		}
 	}
 
-	private void contructTabComponents(String s) {
+	private void addPanesToClassTabs(String s) {
 		JPanel scoreWrapper;
 		JScrollPane scorePane;
 		JScrollPane sumPane;
@@ -172,29 +169,50 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		tabbedPane.addTab(s, null, scoreWrapper, null);
 	}
 
-	private JScrollPane makeClassScorePane(String s) {
-		scoreTable = new JTable(new DefaultTableModel(
-				grades.getClassAssignments(s), grades.getAssignmentHeaders()));
+	private JScrollPane makeClassScorePane(String className) {
 		
-		assignmentTables.put(s, scoreTable);
-		scoreTable.putClientProperty("terminateEditOnFocusLost", true);
-		
-		addTableListener();
-		TableColumnModel tm = scoreTable.getColumnModel();
-		tm.removeColumn(tm.getColumn(0));
+		JTable scoreTable = new JTable();
+		makeNewClassTable(scoreTable, className);
 		JScrollPane scorePane = new JScrollPane(scoreTable);
+		
 		return scorePane;
 	}
-
+	
 	private JScrollPane makeClassSumPane(String s) {
-		makeNewSumTable(s);
+		JTable sumTable = new JTable();
+		makeNewSumTable(sumTable, s);
 		JScrollPane sumPane = new JScrollPane(sumTable);
 		return sumPane;
 	}
 
-	private DefaultTableModel makeNewSumTable(String s) {
-		String s1 = s;
-		if (s.equals("All")) 
+	private void makeNewClassTable(JTable scoreTable, String className) {
+		setupClassTable(scoreTable, className);
+		addTableListener(scoreTable);
+		
+		assignmentTables.put(className, scoreTable);
+	}
+	
+	private void makeNewSumTable(JTable tab, String s) {
+		setupSumTable(tab, s);
+		sumTables.put(s, tab);
+	}
+	
+	private void setupClassTable(JTable tab, String className) {
+		DefaultTableModel model = new DefaultTableModel(
+				grades.getClassAssignments(className), grades.getAssignmentHeaders());
+		
+		tab.setModel(model);
+		TableColumnModel tm = tab.getColumnModel();
+		tm.removeColumn(tm.getColumn(0));
+		
+		tab.putClientProperty("terminateEditOnFocusLost", true);
+		tab.setAutoCreateColumnsFromModel(false);
+	}
+
+	private void setupSumTable(JTable tab, String className) {
+		
+		String s1 = className;
+		if (className.equals("All")) 
 			s1 = "%";
 		
 		int scoreTotal = grades.getColumnTotal("POINTS", s1);
@@ -204,74 +222,49 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		String[][] rowData = { { "ID", "Total", "" + scoreTotal, "" + possTotal,
 				"" + percent + "%", "" } };
 		
-		sumTable = new JTable(new DefaultTableModel(rowData, colHeaders));
-		TableColumnModel tm = sumTable.getColumnModel();
+		DefaultTableModel model = new DefaultTableModel(rowData, colHeaders);
+		tab.setModel(model);
+		
+		TableColumnModel tm = tab.getColumnModel();
 		tm.removeColumn(tm.getColumn(0));
-		sumTable.setEnabled(false);
-		sumTables.put(s, sumTable);
-		return (DefaultTableModel) (sumTable.getModel());
+		tab.setEnabled(false);
 	}
 
 	private void addAssignmentUpdateTables(boolean assignment) {
 
 		if (assignment) {
 			addAssignment();
-			
 			String className = (String) comboBox.getSelectedItem();
-			String[] rowData = getAssignmentData();
-
-			DefaultTableModel model = (DefaultTableModel) (assignmentTables.get(className).getModel());
-			model.addRow(rowData);
-
-			model = (DefaultTableModel) (assignmentTables.get("All").getModel());
-			model.addRow(rowData);
-			
-			refreshSumTables(className);
+			refreshTables(className);
 			
 		} else {
 			addClass();
-			contructTabComponents(textField_2.getText());
+			addPanesToClassTabs(textField_2.getText());
 			comboBox.setModel(new DefaultComboBoxModel<String>(grades
 					.getClasses()));
 		}
 	}
-
-	private void refreshSumTables(String className) {
-		sumTables.get(className).setModel(makeNewSumTable(className));
-		sumTables.get("All").setModel(makeNewSumTable("All"));
-	}
 	
-	private void refreshTables(String className, String id, int col, String newValue) {
-		
-		DefaultTableModel model = (DefaultTableModel) (assignmentTables.get(className).getModel());
-		updateTaleValue(id, col, newValue, model);
-		
-		model = (DefaultTableModel) (assignmentTables.get("All").getModel());
-		updateTaleValue(id, col, newValue, model);
-		
+	private void refreshTables(String className) {
+		refreshClassTables(className);
 		refreshSumTables(className);
 	}
-
-	private void updateTaleValue(String id, int col, String newValue,
-			DefaultTableModel model) {
-		int index = 0;
-		for (Object v1 : model.getDataVector()) {
-			Vector<?> v = (Vector<?>) v1;
-			if (v.elementAt(0).equals(id)) break;
-			index++;
+	
+	private void refreshTables() {
+		for (String className : grades.getClasses()) {
+			refreshClassTables(className);
+			refreshSumTables(className);
 		}
-		
-		model.setValueAt(newValue, index, col);
+	}
+	
+	private void refreshClassTables(String className) {
+		makeNewClassTable(assignmentTables.get(className), className);
+		makeNewClassTable(assignmentTables.get("All"), "All");
 	}
 
-	private String[] getAssignmentData() {
-		SimpleDateFormat date = new SimpleDateFormat("MM:dd:yyy");
-		String theDate = date.format(new Date());
-		String[] rowData = { "" + grades.nextScoreID(),
-				txtAssignment.getText(), textField.getText(),
-				textField_1.getText(), (String) comboBox.getSelectedItem(),
-				theDate };
-		return rowData;
+	private void refreshSumTables(String className) {
+		makeNewSumTable(sumTables.get(className), className);
+		makeNewSumTable(sumTables.get("All"), "All");
 	}
 
 	@Override
@@ -378,20 +371,19 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		panel.add(btnAddClass);
 	}
 	
-	private void addTableListener() {
-		scoreTable.getModel().addTableModelListener(new TableModelListener() {
+	private void addTableListener(JTable table) {
+		table.getModel().addTableModelListener(new TableModelListener() {
 			public void tableChanged(TableModelEvent e) {
 				System.out.println(e);
-				e.getSource();
 				int row = e.getFirstRow();
 				int col = e.getColumn();
 				DefaultTableModel model = (DefaultTableModel) e.getSource();
 				String newValue = (String) (model.getValueAt(row, col));
-				String className = (String) (model.getValueAt(row, 4));
+				
 				String id = (String) model.getValueAt(row, 0);
 				String columnName = model.getColumnName(col);
 				grades.updateScoreInfo(id, columnName, newValue);
-//				refreshTables(className, id, col, newValue);
+				refreshTables();
 			}
 		});
 	}
