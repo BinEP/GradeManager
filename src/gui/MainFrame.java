@@ -192,7 +192,6 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		
 		scoreTable.putClientProperty("terminateEditOnFocusLost", true);
 		scoreTable.setAutoCreateColumnsFromModel(false);
-		addTableListener(scoreTable);
 		
 		assignmentTables.put(className, scoreTable);
 	}
@@ -202,6 +201,7 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		TableColumnModel tm = tab.getColumnModel();
 		tm.removeColumn(tm.getColumn(0));
 		tab.setAutoCreateColumnsFromModel(false);
+		
 		tab.setEnabled(false);
 		sumTables.put(s, tab);
 	}
@@ -211,6 +211,7 @@ public class MainFrame extends JFrame implements CellEditorListener {
 				grades.getClassAssignments(className), grades.getAssignmentHeaders());
 		
 		tab.setModel(model);
+		addTableListener(tab);
 		
 	}
 
@@ -254,7 +255,9 @@ public class MainFrame extends JFrame implements CellEditorListener {
 	}
 	
 	private void refreshTables() {
-		for (String className : grades.getClasses()) {
+		ArrayList < String > theClasses = grades.getClassesList();
+		theClasses.add("All");
+		for (String className : theClasses) {
 			refreshClassTables(className);
 			refreshSumTables(className);
 		}
