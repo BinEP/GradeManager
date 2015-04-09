@@ -200,6 +200,7 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		setupSumTable(tab, s);
 		TableColumnModel tm = tab.getColumnModel();
 		tm.removeColumn(tm.getColumn(0));
+		tm.removeColumn(tm.getColumn(tm.getColumnCount() - 1));
 		tab.setAutoCreateColumnsFromModel(false);
 		
 		tab.setEnabled(false);
@@ -394,3 +395,21 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		});
 	}
 }
+
+
+//key bindings method
+/*
+ * 
+ * 
+ * int condition = JComponent.WHEN_IN_FOCUSED_WINDOW;
+  InputMap inputMap = table.getInputMap(condition);
+  ActionMap actionMap = table.getActionMap();
+
+  // DELETE is a String constant that for me was defined as "Delete"
+  inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), DELETE);
+  actionMap.put(DELETE, new AbstractAction() {
+     public void actionPerformed(ActionEvent e) {
+        // TODO: do deletion action here
+     }
+  });
+ */
