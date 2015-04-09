@@ -187,6 +187,11 @@ public class MainFrame extends JFrame implements CellEditorListener {
 
 	private void makeNewClassTable(JTable scoreTable, String className) {
 		setupClassTable(scoreTable, className);
+		TableColumnModel tm = scoreTable.getColumnModel();
+		tm.removeColumn(tm.getColumn(0));
+		
+		scoreTable.putClientProperty("terminateEditOnFocusLost", true);
+		scoreTable.setAutoCreateColumnsFromModel(false);
 		addTableListener(scoreTable);
 		
 		assignmentTables.put(className, scoreTable);
@@ -204,9 +209,8 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		tab.setModel(model);
 		TableColumnModel tm = tab.getColumnModel();
 		tm.removeColumn(tm.getColumn(0));
+		tab.setEnabled(false);
 		
-		tab.putClientProperty("terminateEditOnFocusLost", true);
-		tab.setAutoCreateColumnsFromModel(false);
 	}
 
 	private void setupSumTable(JTable tab, String className) {
@@ -225,9 +229,7 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		DefaultTableModel model = new DefaultTableModel(rowData, colHeaders);
 		tab.setModel(model);
 		
-		TableColumnModel tm = tab.getColumnModel();
-		tm.removeColumn(tm.getColumn(0));
-		tab.setEnabled(false);
+		
 	}
 
 	private void addAssignmentUpdateTables(boolean assignment) {
