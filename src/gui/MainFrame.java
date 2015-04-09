@@ -199,6 +199,10 @@ public class MainFrame extends JFrame implements CellEditorListener {
 	
 	private void makeNewSumTable(JTable tab, String s) {
 		setupSumTable(tab, s);
+		TableColumnModel tm = tab.getColumnModel();
+		tm.removeColumn(tm.getColumn(0));
+		tab.setAutoCreateColumnsFromModel(false);
+		tab.setEnabled(false);
 		sumTables.put(s, tab);
 	}
 	
@@ -207,9 +211,6 @@ public class MainFrame extends JFrame implements CellEditorListener {
 				grades.getClassAssignments(className), grades.getAssignmentHeaders());
 		
 		tab.setModel(model);
-		TableColumnModel tm = tab.getColumnModel();
-		tm.removeColumn(tm.getColumn(0));
-		tab.setEnabled(false);
 		
 	}
 
@@ -260,13 +261,13 @@ public class MainFrame extends JFrame implements CellEditorListener {
 	}
 	
 	private void refreshClassTables(String className) {
-		makeNewClassTable(assignmentTables.get(className), className);
-		makeNewClassTable(assignmentTables.get("All"), "All");
+		setupClassTable(assignmentTables.get(className), className);
+		setupClassTable(assignmentTables.get("All"), "All");
 	}
 
 	private void refreshSumTables(String className) {
-		makeNewSumTable(sumTables.get(className), className);
-		makeNewSumTable(sumTables.get("All"), "All");
+		setupSumTable(sumTables.get(className), className);
+		setupSumTable(sumTables.get("All"), "All");
 	}
 
 	@Override
