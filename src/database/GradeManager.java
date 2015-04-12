@@ -1,14 +1,11 @@
 package database;
 
-import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
-
-import javax.swing.JTable;
 
 public class GradeManager {
 
-	DatabaseManagement classes;
-	DatabaseManagement scores;
+	private DatabaseManagement classes;
+	private DatabaseManagement scores;
 	
 	public GradeManager() {
 		String[][] fields = {{"ID", "INT"}, {"NAME", "TEXT"}};
@@ -23,6 +20,10 @@ public class GradeManager {
 	
 	public void addAssignment(String assignmentName, String score, String possiblePoints, String theClass) {
 		scores.insertInfo(assignmentName, score, possiblePoints, theClass);
+	}
+	
+	public void deleteAssignment(String id) {
+		scores.deleteInfo(id);
 	}
 	
 	public void updateScoreInfo(String id, String column, String newValue) {
