@@ -283,12 +283,7 @@ public class MainFrame extends JFrame implements CellEditorListener, KeyListener
 	private void makeSideBar(JPanel panel) {
 
 		addLabel(panel, "Add Assignment");
-
 		addRigid(panel);
-
-		JLabel lblAssignmentName = new JLabel("Assignment Name");
-		lblAssignmentName.setHorizontalAlignment(SwingConstants.CENTER);
-		panel.add(lblAssignmentName);
 		addLabel(panel, "Assignment Name");
 
 		txtAssignment.setText("assignment");
@@ -297,26 +292,19 @@ public class MainFrame extends JFrame implements CellEditorListener, KeyListener
 
 		addRigid(panel);
 
-		JLabel lblScore = new JLabel("Score");
-		lblScore.setHorizontalAlignment(SwingConstants.CENTER);
-		panel.add(lblScore);
-		addLabel(panel, "Add Assignment");
+		addLabel(panel, "Score");
 
 		scoreField.setMinimumSize(new Dimension(10, 28));
 		scoreField.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(scoreField);
 		scoreField.setColumns(4);
 
-		JLabel lblOutOf = new JLabel("Out Of");
-		lblOutOf.setHorizontalAlignment(SwingConstants.CENTER);
-		panel.add(lblOutOf);
-		addLabel(panel, "Add Assignment");
+		addLabel(panel, "Out Of");
 
 		panel.add(outOfField);
 		outOfField.setColumns(10);
 
 		addRigid(panel);
-
 		
 		classSelectBox.setModel(new DefaultComboBoxModel<String>(grades.getClasses()));
 		try {
@@ -339,16 +327,11 @@ public class MainFrame extends JFrame implements CellEditorListener, KeyListener
 		JSeparator separator = new JSeparator();
 		panel.add(separator);
 
-		JLabel lblAddClass = new JLabel("Add Class");
-		panel.add(lblAddClass);
-		addLabel(panel, "Add Assignment");
+		addLabel(panel, "Add Class");
 
-		Component rigidArea_1 = Box.createRigidArea(new Dimension(20, 20));
-		panel.add(rigidArea_1);
+		addRigid(panel);
 
-		JLabel lblClass = new JLabel("Class");
-		panel.add(lblClass);
-		addLabel(panel, "Add Assignment");
+		addLabel(panel, "Class");
 		
 		panel.add(classField);
 		classField.setColumns(10);
