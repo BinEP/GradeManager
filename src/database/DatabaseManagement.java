@@ -140,6 +140,24 @@ public class DatabaseManagement {
 		closeConnections();
 		System.out.println("Value Updated successsfully");
 	}
+	
+	public void deleteInfo(String id) {
+		try {
+			deleteInfoCommand(id);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void deleteInfoCommand(String id) throws SQLException {
+		String sql = "DELETE FROM SCORES WHERE ID = " + id + ";";
+		Statement updateInfoCommand = database.createStatement();
+		updateInfoCommand.executeUpdate(sql);
+		updateInfoCommand.close();
+		database.commit();
+		closeConnections();
+		System.out.println("Value Updated successsfully");
+	}
 
 	public ArrayList<String[]> selectData() {
 		try {

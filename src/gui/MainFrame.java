@@ -28,19 +28,16 @@ import database.GradeManager;
 
 import javax.swing.JButton;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JTable;
 import javax.swing.JSeparator;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Vector;
 
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeListener;
@@ -50,32 +47,30 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
-public class MainFrame extends JFrame implements CellEditorListener {
+public class MainFrame extends JFrame implements CellEditorListener, KeyListener {
 
 	private static final long serialVersionUID = -3136693642689296249L;
-	private JPanel contentPane;
-	private JTextField txtAssignment;
-	private JTextField textField_1;
+	private final JPanel contentPane = new JPanel();
+	private final JTextField txtAssignment = new JTextField();
+	private final JTextField outOfField = new JTextField();
 
-	private GradeManager grades = new GradeManager();
-	private JTextField textField_2;
-	private JTextField textField;
-	private JTable scoreTable;
-	private JTable sumTable;
-	private JComboBox<String> comboBox;
-	private JTabbedPane tabbedPane;
-	private HashMap<String, JTable> assignmentTables = new HashMap<String, JTable>();
-	private HashMap<String, JTable> sumTables = new HashMap<String, JTable>();
+	private final GradeManager grades = new GradeManager();
+	private final JTextField classField = new JTextField();
+	private final JTextField scoreField = new JTextField();
+	private final JComboBox<String> classSelectBox = new JComboBox<String>();
+	private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+	private final HashMap<String, JTable> assignmentTables = new HashMap<String, JTable>();
+	private final HashMap<String, JTable> sumTables = new HashMap<String, JTable>();
 
-	private String[] colHeaders = grades.getAssignmentHeaders();
+	private final String[] colHeaders = grades.getAssignmentHeaders();
 
 	private void addAssignment() {
-		grades.addAssignment(txtAssignment.getText(), textField.getText(),
-				textField_1.getText(), (String) comboBox.getSelectedItem());
+		grades.addAssignment(txtAssignment.getText(), scoreField.getText(),
+				outOfField.getText(), (String) classSelectBox.getSelectedItem());
 	}
 
 	private void addClass() {
-		grades.addClass(textField_2.getText());
+		grades.addClass(classField.getText());
 	}
 
 	/**
@@ -118,7 +113,7 @@ public class MainFrame extends JFrame implements CellEditorListener {
 				if (title == null)
 					return;
 				System.out.println("Tab changed to: " + title);
-				comboBox.setSelectedItem(title);
+				classSelectBox.setSelectedItem(title);
 			}
 		});
 	}
@@ -126,37 +121,28 @@ public class MainFrame extends JFrame implements CellEditorListener {
 	private void setupOuterPane() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 700, 700);
-		contentPane = new JPanel();
+		
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));
-
-		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-
 		contentPane.add(tabbedPane, BorderLayout.CENTER);
 	}
 
 	private void makePanes(JTabbedPane tabbedPane) {
-
-		scoreTable = new JTable();
-		scoreTable.addPropertyChangeListener(new PropertyChangeListener() {
-			public void propertyChange(PropertyChangeEvent evt) {
-			}
-		});
-		addAllTabs(colHeaders);
+		addClassTabs(colHeaders);
 	}
 
-	private void addAllTabs(String[] colHeaders) {
+	private void addClassTabs(String[] colHeaders) {
 		
 		ArrayList<String> classList = grades.getClassesList();
 		classList.add(0, "All");
 		
 		for (String s : classList) {
-			contructTabComponents(s);
+			addPanesToClassTabs(s);
 		}
 	}
 
-	private void contructTabComponents(String s) {
+	private void addPanesToClassTabs(String s) {
 		JPanel scoreWrapper;
 		JScrollPane scorePane;
 		JScrollPane sumPane;
@@ -172,29 +158,58 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		tabbedPane.addTab(s, null, scoreWrapper, null);
 	}
 
-	private JScrollPane makeClassScorePane(String s) {
-		scoreTable = new JTable(new DefaultTableModel(
-				grades.getClassAssignments(s), grades.getAssignmentHeaders()));
+	private JScrollPane makeClassScorePane(String className) {
 		
-		assignmentTables.put(s, scoreTable);
-		scoreTable.putClientProperty("terminateEditOnFocusLost", true);
-		
-		addTableListener();
-		TableColumnModel tm = scoreTable.getColumnModel();
-		tm.removeColumn(tm.getColumn(0));
+		JTable scoreTable = new JTable();
+		makeNewClassTable(scoreTable, className);
 		JScrollPane scorePane = new JScrollPane(scoreTable);
+		
 		return scorePane;
 	}
-
+	
 	private JScrollPane makeClassSumPane(String s) {
-		makeNewSumTable(s);
+		JTable sumTable = new JTable();
+		makeNewSumTable(sumTable, s);
 		JScrollPane sumPane = new JScrollPane(sumTable);
 		return sumPane;
 	}
 
-	private DefaultTableModel makeNewSumTable(String s) {
-		String s1 = s;
-		if (s.equals("All")) 
+	private void makeNewClassTable(JTable scoreTable, String className) {
+		setupClassTable(scoreTable, className);
+		TableColumnModel tm = scoreTable.getColumnModel();
+		tm.removeColumn(tm.getColumn(0));
+		
+		scoreTable.putClientProperty("terminateEditOnFocusLost", true);
+		scoreTable.setAutoCreateColumnsFromModel(false);
+		scoreTable.addKeyListener(this);
+		scoreTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+		assignmentTables.put(className, scoreTable);
+	}
+	
+	private void makeNewSumTable(JTable tab, String s) {
+		setupSumTable(tab, s);
+		TableColumnModel tm = tab.getColumnModel();
+		tm.removeColumn(tm.getColumn(0));
+		tm.removeColumn(tm.getColumn(tm.getColumnCount() - 1));
+		tab.setAutoCreateColumnsFromModel(false);
+		
+		tab.setEnabled(false);
+		sumTables.put(s, tab);
+	}
+	
+	private void setupClassTable(JTable tab, String className) {
+		DefaultTableModel model = new DefaultTableModel(
+				grades.getClassAssignments(className), grades.getAssignmentHeaders());
+		
+		tab.setModel(model);
+		addTableListener(tab);
+		
+	}
+
+	private void setupSumTable(JTable tab, String className) {
+		
+		String s1 = className;
+		if (className.equals("All")) 
 			s1 = "%";
 		
 		int scoreTotal = grades.getColumnTotal("POINTS", s1);
@@ -204,74 +219,49 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		String[][] rowData = { { "ID", "Total", "" + scoreTotal, "" + possTotal,
 				"" + percent + "%", "" } };
 		
-		sumTable = new JTable(new DefaultTableModel(rowData, colHeaders));
-		TableColumnModel tm = sumTable.getColumnModel();
-		tm.removeColumn(tm.getColumn(0));
-		sumTable.setEnabled(false);
-		sumTables.put(s, sumTable);
-		return (DefaultTableModel) (sumTable.getModel());
+		DefaultTableModel model = new DefaultTableModel(rowData, colHeaders);
+		tab.setModel(model);
+		
+		
 	}
 
 	private void addAssignmentUpdateTables(boolean assignment) {
 
 		if (assignment) {
 			addAssignment();
-			
-			String className = (String) comboBox.getSelectedItem();
-			String[] rowData = getAssignmentData();
-
-			DefaultTableModel model = (DefaultTableModel) (assignmentTables.get(className).getModel());
-			model.addRow(rowData);
-
-			model = (DefaultTableModel) (assignmentTables.get("All").getModel());
-			model.addRow(rowData);
-			
-			refreshSumTables(className);
+			String className = (String) classSelectBox.getSelectedItem();
+			refreshTables(className);
 			
 		} else {
 			addClass();
-			contructTabComponents(textField_2.getText());
-			comboBox.setModel(new DefaultComboBoxModel<String>(grades
+			addPanesToClassTabs(classField.getText());
+			classSelectBox.setModel(new DefaultComboBoxModel<String>(grades
 					.getClasses()));
 		}
 	}
-
-	private void refreshSumTables(String className) {
-		sumTables.get(className).setModel(makeNewSumTable(className));
-		sumTables.get("All").setModel(makeNewSumTable("All"));
-	}
 	
-	private void refreshTables(String className, String id, int col, String newValue) {
-		
-		DefaultTableModel model = (DefaultTableModel) (assignmentTables.get(className).getModel());
-		updateTaleValue(id, col, newValue, model);
-		
-		model = (DefaultTableModel) (assignmentTables.get("All").getModel());
-		updateTaleValue(id, col, newValue, model);
-		
+	private void refreshTables(String className) {
+		refreshClassTables(className);
 		refreshSumTables(className);
 	}
-
-	private void updateTaleValue(String id, int col, String newValue,
-			DefaultTableModel model) {
-		int index = 0;
-		for (Object v1 : model.getDataVector()) {
-			Vector<?> v = (Vector<?>) v1;
-			if (v.elementAt(0).equals(id)) break;
-			index++;
+	
+	private void refreshTables() {
+		ArrayList < String > theClasses = grades.getClassesList();
+		theClasses.add("All");
+		for (String className : theClasses) {
+			refreshClassTables(className);
+			refreshSumTables(className);
 		}
-		
-		model.setValueAt(newValue, index, col);
+	}
+	
+	private void refreshClassTables(String className) {
+		setupClassTable(assignmentTables.get(className), className);
+		setupClassTable(assignmentTables.get("All"), "All");
 	}
 
-	private String[] getAssignmentData() {
-		SimpleDateFormat date = new SimpleDateFormat("MM:dd:yyy");
-		String theDate = date.format(new Date());
-		String[] rowData = { "" + grades.nextScoreID(),
-				txtAssignment.getText(), textField.getText(),
-				textField_1.getText(), (String) comboBox.getSelectedItem(),
-				theDate };
-		return rowData;
+	private void refreshSumTables(String className) {
+		setupSumTable(sumTables.get(className), className);
+		setupSumTable(sumTables.get("All"), "All");
 	}
 
 	@Override
@@ -292,54 +282,37 @@ public class MainFrame extends JFrame implements CellEditorListener {
 
 	private void makeSideBar(JPanel panel) {
 
-		JLabel lblAddAssignment = new JLabel("Add Assignment");
-		lblAddAssignment.setHorizontalAlignment(SwingConstants.CENTER);
-		panel.add(lblAddAssignment);
+		addLabel(panel, "Add Assignment");
+		addRigid(panel);
+		addLabel(panel, "Assignment Name");
 
-		Component rigidArea = Box.createRigidArea(new Dimension(150, 20));
-		panel.add(rigidArea);
-
-		JLabel lblAssignmentName = new JLabel("Assignment Name");
-		lblAssignmentName.setHorizontalAlignment(SwingConstants.CENTER);
-		panel.add(lblAssignmentName);
-
-		txtAssignment = new JTextField();
 		txtAssignment.setText("assignment");
 		panel.add(txtAssignment);
 		txtAssignment.setColumns(10);
 
-		Component rigidArea_2 = Box.createRigidArea(new Dimension(20, 20));
-		panel.add(rigidArea_2);
+		addRigid(panel);
 
-		JLabel lblScore = new JLabel("Score");
-		lblScore.setHorizontalAlignment(SwingConstants.CENTER);
-		panel.add(lblScore);
+		addLabel(panel, "Score");
 
-		textField = new JTextField();
-		textField.setMinimumSize(new Dimension(10, 28));
-		textField.setHorizontalAlignment(SwingConstants.CENTER);
-		panel.add(textField);
-		textField.setColumns(4);
+		scoreField.setMinimumSize(new Dimension(10, 28));
+		scoreField.setHorizontalAlignment(SwingConstants.CENTER);
+		panel.add(scoreField);
+		scoreField.setColumns(4);
 
-		JLabel lblOutOf = new JLabel("Out Of");
-		lblOutOf.setHorizontalAlignment(SwingConstants.CENTER);
-		panel.add(lblOutOf);
+		addLabel(panel, "Out Of");
 
-		textField_1 = new JTextField();
-		panel.add(textField_1);
-		textField_1.setColumns(10);
+		panel.add(outOfField);
+		outOfField.setColumns(10);
 
-		Component rigidArea_3 = Box.createRigidArea(new Dimension(20, 20));
-		panel.add(rigidArea_3);
-
-		comboBox = new JComboBox<String>();
-		comboBox.setModel(new DefaultComboBoxModel<String>(grades.getClasses()));
+		addRigid(panel);
+		
+		classSelectBox.setModel(new DefaultComboBoxModel<String>(grades.getClasses()));
 		try {
-			comboBox.setSelectedIndex(0);
+			classSelectBox.setSelectedIndex(0);
 		} catch (IllegalArgumentException e) {
 			System.out.println("No Classes");
 		}
-		panel.add(comboBox);
+		panel.add(classSelectBox);
 
 		JButton btnAddAssignment = new JButton("Add Assignment");
 		btnAddAssignment.addMouseListener(new MouseAdapter() {
@@ -354,18 +327,14 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		JSeparator separator = new JSeparator();
 		panel.add(separator);
 
-		JLabel lblAddClass = new JLabel("Add Class");
-		panel.add(lblAddClass);
+		addLabel(panel, "Add Class");
 
-		Component rigidArea_1 = Box.createRigidArea(new Dimension(20, 20));
-		panel.add(rigidArea_1);
+		addRigid(panel);
 
-		JLabel lblClass = new JLabel("Class");
-		panel.add(lblClass);
-
-		textField_2 = new JTextField();
-		panel.add(textField_2);
-		textField_2.setColumns(10);
+		addLabel(panel, "Class");
+		
+		panel.add(classField);
+		classField.setColumns(10);
 
 		JButton btnAddClass = new JButton("Add Class");
 		btnAddClass.addMouseListener(new MouseAdapter() {
@@ -377,22 +346,57 @@ public class MainFrame extends JFrame implements CellEditorListener {
 		});
 		panel.add(btnAddClass);
 	}
+
+	private void addLabel(JPanel panel, String label) {
+		JLabel lblAddAssignment = new JLabel(label);
+		lblAddAssignment.setHorizontalAlignment(SwingConstants.CENTER);
+		panel.add(lblAddAssignment);
+	}
+
+	private void addRigid(JPanel panel) {
+		Component rigidArea = Box.createRigidArea(new Dimension(150, 20));
+		panel.add(rigidArea);
+	}
 	
-	private void addTableListener() {
-		scoreTable.getModel().addTableModelListener(new TableModelListener() {
+	private void addTableListener(JTable table) {
+		table.getModel().addTableModelListener(new TableModelListener() {
 			public void tableChanged(TableModelEvent e) {
 				System.out.println(e);
-				e.getSource();
 				int row = e.getFirstRow();
 				int col = e.getColumn();
 				DefaultTableModel model = (DefaultTableModel) e.getSource();
 				String newValue = (String) (model.getValueAt(row, col));
-				String className = (String) (model.getValueAt(row, 4));
+				
 				String id = (String) model.getValueAt(row, 0);
 				String columnName = model.getColumnName(col);
 				grades.updateScoreInfo(id, columnName, newValue);
-//				refreshTables(className, id, col, newValue);
+				refreshTables();
 			}
 		});
 	}
+	
+	private void deleteRows(JTable tab) {
+		int[] rows = tab.getSelectedRows();
+		for (int i : rows) {
+			String id = (String) tab.getModel().getValueAt(i, 0);
+			grades.deleteAssignment(id);
+		}
+		refreshTables();
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		System.out.println(e.getComponent());
+		JTable tab = (JTable) e.getComponent();
+		if (tab.getEditingRow() == -1) {
+			System.out.println("Key Pressed");
+			deleteRows(tab);
+		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {}
 }
